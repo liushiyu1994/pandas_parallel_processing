@@ -116,7 +116,7 @@ def thread_parallel_with_writer_processor():
 
 def main():
     print("Random number generating")
-    # large_csv_generator()
+    large_csv_generator()
     print("Random number generated!")
     single_processor()
     check_result(0.01)

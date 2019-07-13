@@ -1,6 +1,2 @@
-
-*.xml
-*.iml
-*.pyc
-*.csv
-*.xml___jb_tmp___
+.idea/
+*/__pycache__/

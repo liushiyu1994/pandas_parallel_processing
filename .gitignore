@@ -1,3 +1,4 @@
 .idea/
 */__pycache__/
-test.py
+src/test.py
+data/large_csv.csv

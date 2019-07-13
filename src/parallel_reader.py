@@ -126,6 +126,14 @@ def single_line_func(line):
 
 
 @clock_and_check
+def for_loop_single_processor():
+    with open(raw_csv_file) as f_in, \
+            open(processed_csv_file, 'w') as f_out:
+        for line in f_in:
+            f_out.write(single_line_func(line))
+
+
+@clock_and_check
 def for_loop_thread_parallel_processor():
     with open(raw_csv_file) as f_in, \
             open(processed_csv_file, 'w') as f_out, \
@@ -153,6 +161,7 @@ def main():
     # thread_parallel_processor()
     # process_parallel_processor()
     # thread_parallel_with_writer_processor()
+    for_loop_single_processor()
     for_loop_thread_parallel_processor()
     for_loop_process_parallel_processor()
 

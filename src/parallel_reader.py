@@ -11,7 +11,7 @@ thread_num = os.cpu_count()
 if thread_num > 10:
     n_row = 30000
     n_col = 30000
-    chunksize = 5000
+    chunksize = 1000
 else:
     n_row = 5000
     n_col = 5000
@@ -25,16 +25,17 @@ def large_csv_generator():
     np.savetxt(raw_csv_file, random_num, delimiter=',')
 
 
-def clock(func):
-    def clocked(*args, **kwargs):
+def clock_and_check(func, rate=0.5):
+    def clocked_and_checked(*args, **kwargs):
         t0 = time.perf_counter()
         result = func(*args, **kwargs)
         elapsed = time.perf_counter() - t0
         name = func.__name__
         arg_str = ', '.join(repr(arg) for arg in args)
         print('[%0.8fs] %s(%s)' % (elapsed, name, arg_str))
+        check_result(rate)
         return result
-    return clocked
+    return clocked_and_checked
 
 
 def single_pandas_func(df):
@@ -58,10 +59,13 @@ def check_result(rate):
                 num2 = float(l2[new_col_index])
                 if abs(num1 - num2) > 1e-10:
                     raise ValueError("Not equal!\nNum1: {}\nNum2: {}".format(num1, num2))
+
+        if f1_in.readline() != f2_in.readline():
+            raise ValueError("EOF is not equal!")
     print("Test passed!")
 
 
-@clock
+@clock_and_check
 def single_processor():
     print("Start processing by Pandas...")
     df_iter = pd.read_csv(raw_csv_file, header=None, chunksize=chunksize)
@@ -74,7 +78,7 @@ def single_processor():
     print("Finish processing by Pandas.")
 
 
-@clock
+@clock_and_check
 def thread_parallel_processor():
     print("Start processing by thread-based parallel...")
     df_iter = pd.read_csv(raw_csv_file, header=None, chunksize=chunksize)
@@ -88,7 +92,7 @@ def thread_parallel_processor():
     print("Finish processing by thread-based parallel.")
 
 
-@clock
+@clock_and_check
 def process_parallel_processor():
     print("Start processing by process-based parallel...")
     df_iter = pd.read_csv(raw_csv_file, header=None, chunksize=chunksize)
@@ -102,7 +106,7 @@ def process_parallel_processor():
     print("Finish processing by process-based parallel.")
 
 
-@clock
+@clock_and_check
 def thread_parallel_with_writer_processor():
     print("Start processing by thread-based parallel with writer...")
     df_iter = pd.read_csv(raw_csv_file, header=None, chunksize=chunksize)
@@ -114,18 +118,43 @@ def thread_parallel_with_writer_processor():
     print("Finish processing by thread-based parallel with writer.")
 
 
+def single_line_func(line):
+    l1 = line.split(',')
+    new_str = ",".join([l1[x] for x in target_col_list])
+    # f_out.write("{}\n".format(new_str))
+    return "{}\n".format(new_str)
+
+
+@clock_and_check
+def for_loop_thread_parallel_processor():
+    with open(raw_csv_file) as f_in, \
+            open(processed_csv_file, 'w') as f_out, \
+            mt.Pool(thread_num) as pool:
+        thread_iter = pool.imap(single_line_func, f_in, chunksize=chunksize)
+        for output_line in thread_iter:
+            f_out.write(output_line)
+
+
+@clock_and_check
+def for_loop_process_parallel_processor():
+    with open(raw_csv_file) as f_in, \
+            open(processed_csv_file, 'w') as f_out, \
+            mp.Pool(thread_num) as pool:
+        thread_iter = pool.imap(single_line_func, f_in, chunksize=chunksize)
+        for output_line in thread_iter:
+            f_out.write(output_line)
+
+
 def main():
     print("Random number generating")
-    large_csv_generator()
+    # large_csv_generator()
     print("Random number generated!")
     single_processor()
-    check_result(0.01)
-    thread_parallel_processor()
-    check_result(0.01)
-    process_parallel_processor()
-    check_result(0.01)
-    thread_parallel_with_writer_processor()
-    check_result(0.1)
+    # thread_parallel_processor()
+    # process_parallel_processor()
+    # thread_parallel_with_writer_processor()
+    for_loop_thread_parallel_processor()
+    for_loop_process_parallel_processor()
 
 
 if __name__ == '__main__':

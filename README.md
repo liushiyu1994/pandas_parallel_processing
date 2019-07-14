@@ -16,7 +16,7 @@ Just simply run:
 python src/parallel_reader.py
 ```
 
-First, a test data set, CSV file containing random float numbers is generated. Then, several methods are utilized to extract four columns in the data set, and output to a new CSV file. Running time of different methods will be measured and displayed. The methods include:
+First, a test data set, CSV file containing random float numbers is generated. Then, several methods are utilized to extract four columns in the data set, and output to a new CSV file. Running time of different methods will be measured and displayed. After running, a sampling test is executed to check if output strictly keep the order of input. The methods include:
 
 1. Ordinary Pandas I/O method.
 2. Pandas I/O method with multi-thread acceleration. Writing part is in the main thread.
@@ -25,6 +25,46 @@ First, a test data set, CSV file containing random float numbers is generated. T
 5. Normal for-loop method.
 6. For-loop method with multi-thread acceleration. Writing part is in the main thread.
 7. For-loop method with multi-process acceleration. Writing part is in the main process.
+
+The output should be something similar with:
+
+```
+Random number generating          
+Random number generated!
+Start processing by Pandas in single processor...
+Finish processing by Pandas in single processor.
+[510.94331532s] Pandas in single processor
+Test passed!
+Start processing by Pandas with thread-based parallel...
+Finish processing by Pandas with thread-based parallel.
+[502.02295056s] Pandas with thread-based parallel
+Test passed!
+Start processing by Pandas with process-based parallel...
+Finish processing by Pandas with process-based parallel.
+[520.49486474s] Pandas with process-based parallel
+Test passed!
+Start processing by Pandas with thread-based parallel writer...
+Finish processing by Pandas with thread-based parallel writer.
+[505.13706774s] Pandas with thread-based parallel writer
+src/parallel_reader.py:75: UserWarning:
+Pandas with thread-based parallel writer:
+Not equal! Num1: 0.5488233632170664 Num2: 0.4035580894763974
+  warnings.warn("\n{}:\nNot equal! Num1: {} Num2: {}".format(function_name, num1, num2))
+Start processing by for-loop in single processor...
+Finish processing by for-loop in single processor.
+[74.52978328s] for-loop in single processor
+Test passed!
+Start processing by for-loop with thread-based parallel...
+Finish processing by for-loop with thread-based parallel.
+[63.97761573s] for-loop with thread-based parallel
+Test passed!
+Start processing by for-loop with process-based parallel...
+Finish processing by for-loop with process-based parallel.
+[68.88769884s] for-loop with process-based parallel
+Test passed!
+```
+
+The warning shows that Pandas with thread-based parallel writer cannot keep order of input files.
 
 ## Conclusions
 
@@ -36,7 +76,7 @@ First, a test data set, CSV file containing random float numbers is generated. T
 
 ## Authors
 
-+ **Shiyu Liu** - *Initial work* - [liushiyu1994](https://github.com/PurpleBooth)
++ **Shiyu Liu** - *Initial work* - [liushiyu1994](https://github.com/liushiyu1994)
 
 
 ## License
